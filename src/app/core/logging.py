@@ -4,6 +4,7 @@ import logging
 import contextvars
 from datetime import datetime, timezone
 import queue
+from pathlib import Path
 from src.app.core.config import settings
 import traceback
 import re
@@ -14,7 +15,6 @@ user_id_var = contextvars.ContextVar("user_id_var", default="system")
 
 
 class SensitiveDataFilter(logging.Filter):
-    # Filters sensitive data
     def filter(self, record):
         patterns = [
             (r'(password)\s*[=:]\s*([^\s,&]+)', r'\1= ******'),
@@ -27,7 +27,6 @@ class SensitiveDataFilter(logging.Filter):
 
 
 class ContextCatchFilter(logging.Filter):
-    # Catches context like request_id, user_id and exc_info
     def filter(self, record):
         record.request_id = request_id_var.get()
         record.user_id = user_id_var.get()
@@ -39,7 +38,6 @@ class ContextCatchFilter(logging.Filter):
 
 
 class JSONFormatter(logging.Formatter):
-    # Formats record into JSON
     def format(self, record) -> str:
         extra_data = {
             "method": getattr(record, "http_method", None),
@@ -67,7 +65,6 @@ class JSONFormatter(logging.Formatter):
 
 
 def init_logging():
-    # Starts queue_listener
     log_queue = queue.Queue()
     queue_handler = logging.handlers.QueueHandler(log_queue)
     queue_handler.addFilter(ContextCatchFilter())
@@ -75,6 +72,9 @@ def init_logging():
 
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JSONFormatter())
+
+    log_file_path = Path(settings.LOG_FILE_PATH)
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     rotating_file_handler = logging.handlers.RotatingFileHandler(
         settings.LOG_FILE_PATH,
@@ -100,6 +100,5 @@ def init_logging():
 
 
 def stop_logging():
-    # Stops queue_listener
     listener = getattr(logging, "_queue_listener")
     listener.stop()
