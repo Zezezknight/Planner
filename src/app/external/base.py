@@ -1,0 +1,6 @@
+from typing import Protocol, Any
+
+
+class ExternalImporter(Protocol):
+    async def fetch_raw(self, request_id: str = None, **kwargs) -> dict | list: ...
+    def normalize(self, raw: dict | list, **kwargs) -> list[dict[str, Any]]: ...

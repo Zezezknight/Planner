@@ -1,0 +1,17 @@
+apscheduler
+contextvars
+fastapi
+motor
+passlib
+python-dotenv
+httpx
+starlette
+pydantic
+pydantic_core
+python-jose
+bcrypt==4.3.0
+pydantic[email]
+uvicorn
+pymongo
+jinja2
+redis
